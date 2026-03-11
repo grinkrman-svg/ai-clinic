@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="silver">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Clinic</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#141210">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AI Clinic">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   @property — анимируемые переменные
+═══════════════════════════════════════ */
+@property --glow-op {
+  syntax: '<number>';
+  initial-value: 0;
+  inherits: false;
+}
+
+/* ═══════════════════════════════════════
+   TOKENS — SILVER (светлый металлик)
+═══════════════════════════════════════ */
+[data-theme="silver"] {
+  --bg:        #d0d2d6;
+  --bg2:       #c8cacf;
+  --bg3:       #bbbdc2;
+  --card:      #d8dadf;
+  --card2:     #cacdd2;
+  --border:    rgba(80,85,100,0.22);
+  --border2:   rgba(140,0,20,0.45);
+  --gold:      #8b0e18;
+  --gold2:     #b01520;
+  --gold3:     #6a0a12;
+  --gold-dim:  rgba(140,0,20,0.08);
+  --text1:     #18191e;
+  --text2:     #3a3c44;
+  --text3:     #767a88;
+  --shadow:    rgba(0,0,0,0.18);
+  --inset-l:   rgba(255,255,255,0.55);
+  --inset-d:   rgba(0,0,0,0.14);
+  --topbar-h:  52px;
+  --nav-h:     40px;
+}
+/* ═══════════════════════════════════════
+   TOKENS — GUNMETAL (средне-серый стальной)
+═══════════════════════════════════════ */
+[data-theme="gunmetal"] {
+  --bg:        #4a4d56;
+  --bg2:       #424550;
+  --bg3:       #3a3d48;
+  --card:      #50535e;
+  --card2:     #484b56;
+  --border:    rgba(20,22,30,0.35);
+  --border2:   rgba(160,20,30,0.50);
+  --gold:      #c0242e;
+  --gold2:     #d83038;
+  --gold3:     #a01c24;
+  --gold-dim:  rgba(160,20,30,0.12);
+  --text1:     #e8eaf0;
+  --text2:     #a8aab8;
+  --text3:     #686a7a;
+  --shadow:    rgba(0,0,0,0.40);
+  --inset-l:   rgba(255,255,255,0.10);
+  --inset-d:   rgba(0,0,0,0.30);
+  --topbar-h:  52px;
+  --nav-h:     40px;
+}
+
+/* ── Brushed metal texture overlay ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    var(--inset-l, rgba(255,255,255,0.08)) 0px,
+    var(--inset-d, rgba(0,0,0,0.05)) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.5;
+}
+
+/* ── Metallic inset shadows on cards ── */
+[data-theme="silver"] .card,
+[data-theme="gunmetal"] .card {
+  box-shadow:
+    inset 0 1px 2px var(--inset-l),
+    inset 0 -1px 2px var(--inset-d),
+    0 2px 6px var(--shadow);
+}
+[data-theme="silver"] .topbar,
+[data-theme="silver"] .navbar,
+[data-theme="gunmetal"] .topbar,
+[data-theme="gunmetal"] .navbar {
+  box-shadow:
+    inset 0 1px 2px var(--inset-l),
+    inset 0 -2px 4px var(--inset-d);
+}
+
+/* ── Notfall / alarm cards — red glow ── */
+[data-theme="silver"] .b-notfall,
+[data-theme="gunmetal"] .b-notfall {
+  background: rgba(140,0,20,0.15);
+  color: var(--gold);
+  border-color: rgba(140,0,20,0.35);
+}
+[data-theme="silver"] .alarm-item svg,
+[data-theme="gunmetal"] .alarm-item svg {
+  stroke: var(--gold);
+}
+[data-theme="silver"] .alarm-ttl,
+[data-theme="gunmetal"] .alarm-ttl {
+  color: var(--gold);
+}
+[data-theme="silver"] .alarm-item,
+[data-theme="gunmetal"] .alarm-item {
+  border-color: rgba(140,0,20,0.15);
+}
+
+/* ── Nav active indicator ── */
+[data-theme="silver"] .nav-item.active,
+[data-theme="gunmetal"] .nav-item.active {
+  color: var(--text1);
+  border-bottom-color: var(--gold);
+  font-weight: 700;
+}
+[data-theme="silver"] .nav-dot,
+[data-theme="gunmetal"] .nav-dot {
+  background: var(--gold);
+}
+
+/* ── Dropdown / select metal style ── */
+[data-theme="silver"] select,
+[data-theme="silver"] .inp,
+[data-theme="gunmetal"] select,
+[data-theme="gunmetal"] .inp {
+  box-shadow: inset 0 1px 3px var(--inset-d), inset 0 -1px 1px var(--inset-l);
+}
+
+/* ── KPI top border red ── */
+[data-theme="silver"] .kpi,
+[data-theme="gunmetal"] .kpi {
+  border-top-color: var(--gold);
+}
+
+/* ── Ticker bar ── */
+.ticker-wrap {
+  flex-shrink: 0;
+  height: 30px;
+  background: var(--bg3);
+  border-top: 1px solid var(--border);
+  box-shadow: inset 0 2px 4px var(--inset-d, rgba(0,0,0,0.2));
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 50;
+}
+.ticker-wrap::before,
+.ticker-wrap::after {
+  content: '';
+  position: absolute; top: 0; bottom: 0;
+  width: 50px; z-index: 2; pointer-events: none;
+}
+.ticker-wrap::before { left: 0; background: linear-gradient(to right, var(--bg3), transparent); }
+.ticker-wrap::after  { right: 0; background: linear-gradient(to left, var(--bg3), transparent); }
+
+.ticker-label {
+  flex-shrink: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gold);
+  padding: 0 12px;
+  border-right: 1px solid var(--border);
+  background: var(--bg3);
+  z-index: 3; height: 100%;
+  display: flex; align-items: center;
+}
+.ticker-inner { overflow: hidden; flex: 1; height: 100%; display: flex; align-items: center; }
+.ticker-track {
+  display: flex; white-space: nowrap;
+  animation: ticker-run 40s linear infinite;
+  will-change: transform;
+}
+.ticker-track:hover { animation-play-state: paused; }
+@keyframes ticker-run {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-item {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 12px; color: var(--text2);
+  padding: 0 20px;
+  display: flex; align-items: center; gap: 7px;
+  height: 30px; white-space: nowrap;
+  border-right: 1px solid var(--border);
+}
+.ticker-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.tdot-ok    { background: #27ae60; }
+.tdot-warn  { background: #d4820a; }
+.tdot-alert { background: var(--gold); box-shadow: 0 0 5px var(--gold); }
+
+/* ═══════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  font-family:'Source Sans 3','Helvetica Neue',sans-serif;
+  font-size:13px;
+  -webkit-font-smoothing:antialiased;
+}
+body{
+  background:var(--bg);
+  color:var(--text1);
+  display:flex;flex-direction:column;
+}
+button{cursor:pointer;font-family:'Source Sans 3',sans-serif;background:none;border:none;color:inherit}
+input,textarea,select{font-family:'Source Sans 3',sans-serif;color:var(--text1);background:var(--bg3)}
+
+/* ═══════════════════════════════════════
+   TOPBAR — fixed height
+═══════════════════════════════════════ */
+.topbar{
+  flex-shrink:0;
+  height:var(--topbar-h);
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{
+  width:32px;height:32px;border-radius:50%;
+  border:1px solid var(--border2);background:var(--gold-dim);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);font-weight:700;
+  flex-shrink:0;
+}
+.logo-text{
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px;font-weight:600;letter-spacing:0.1em;
+  color:var(--text1);white-space:nowrap;
+}
+.logo-text span{color:var(--gold)}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.topbar-time{
+  font-family:'Cormorant Garamond',serif;font-size:14px;
+  color:var(--text2);border-right:1px solid var(--border);
+  padding-right:14px;letter-spacing:0.04em;white-space:nowrap;
+}
+.lang-btns{display:flex;gap:2px}
+.lang-btn{
+  padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600;
+  color:var(--text3);letter-spacing:0.08em;
+  transition:all 0.15s;border:1px solid transparent;
+}
+.lang-btn.active{color:var(--gold);border-color:var(--border);background:var(--gold-dim)}
+.lang-btn:hover:not(.active){color:var(--text2)}
+.theme-btn{
+  width:28px;height:28px;border-radius:50%;
+  border:1px solid var(--border);background:var(--gold-dim);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;transition:all 0.2s;
+}
+.theme-btn:hover{border-color:var(--border2)}
+/* ── Theme swatches ── */
+.theme-swatches{display:flex;gap:5px;align-items:center}
+.swatch{
+  width:22px;height:10px;border-radius:3px;
+  border:1px solid rgba(128,128,128,0.25);
+  cursor:pointer;transition:all 0.2s;
+  flex-shrink:0;opacity:0.6;
+}
+.swatch:hover{opacity:1;transform:scaleY(1.2)}
+.swatch.active{border-color:var(--gold);opacity:1;box-shadow:0 0 0 1px var(--gold)}
+.swatch-dark  {background:linear-gradient(135deg,#141210 50%,#C9A84C 50%)}
+.swatch-light {background:linear-gradient(135deg,#f5f0e8 50%,#8B641E 50%)}
+.swatch-clinic{background:linear-gradient(135deg,#ffffff 50%,#b4141e 50%)}
+.swatch-glass {background:linear-gradient(135deg,#1a2332 50%,#64c8a0 50%)}
+.notif-wrap{position:relative}
+.notif-btn{
+  width:28px;height:28px;border-radius:50%;
+  border:1px solid var(--border);background:var(--gold-dim);
+  display:flex;align-items:center;justify-content:center;
+}
+.notif-btn svg{width:13px;height:13px;stroke:var(--gold);fill:none;stroke-width:1.8}
+.notif-badge{
+  position:absolute;top:-3px;right:-3px;
+  width:15px;height:15px;border-radius:50%;
+  background:#c0392b;color:#fff;font-size:8px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--bg2);
+}
+.user-name{
+  font-family:'Cormorant Garamond',serif;font-size:13px;
+  color:var(--text2);letter-spacing:0.02em;white-space:nowrap;
+}
+
+/* ═══════════════════════════════════════
+   NAVBAR — fixed height
+═══════════════════════════════════════ */
+.navbar{
+  flex-shrink:0;
+  height:var(--nav-h);
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:stretch;
+  padding:0 20px;gap:0;
+  overflow:hidden;
+}
+.nav-item{
+  display:flex;align-items:center;gap:5px;
+  padding:0 14px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:12px;font-weight:700;
+  color:var(--text2);letter-spacing:0.10em;text-transform:uppercase;
+  cursor:pointer;transition:color 0.15s;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;
+}
+.nav-item:hover{color:var(--text1)}
+.nav-item.active{color:var(--text1);border-bottom-color:var(--gold)}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);opacity:0.7}
+
+/* ═══════════════════════════════════════
+   WORKSPACE — fills remaining height
+═══════════════════════════════════════ */
+.workspace{
+  flex:1;
+  overflow:hidden;
+  position:relative;
+}
+.tab-pane{
+  display:none;
+  width:100%;height:100%;
+  overflow:hidden;
+}
+.tab-pane.active{display:flex;flex-direction:column}
+
+/* ═══════════════════════════════════════
+   DASHBOARD LAYOUT
+═══════════════════════════════════════ */
+.dash-wrap{
+  flex:1;overflow:hidden;
+  display:flex;flex-direction:column;
+  padding:10px 16px;gap:8px;
+}
+
+/* Welcome bar */
+.welcome{
+  flex-shrink:0;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:10px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.welcome-label{
+  font-size:9px;font-weight:600;color:var(--text3);
+  letter-spacing:0.16em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;margin-bottom:3px;
+}
+.welcome-label::before,.welcome-label::after{content:'';width:16px;height:1px;background:var(--gold3)}
+.welcome-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(18px,2vw,26px);font-weight:400;letter-spacing:0.02em;
+}
+.welcome-name em{color:var(--gold);font-style:normal}
+.status-pill{
+  display:flex;align-items:center;gap:6px;
+  border:1px solid var(--border);border-radius:20px;
+  padding:4px 12px;background:var(--gold-dim);
+}
+.status-pill span{
+  font-family:'Cormorant Garamond',serif;
+  font-size:12px;color:var(--gold);letter-spacing:0.04em;
+}
+
+/* Three-col row */
+.three-col{
+  display:grid;
+  grid-template-columns:1.15fr 1fr 1fr;
+  gap:8px;
+  flex-shrink:0;
+  min-height:0;
+}
+
+/* Bottom row: table */
+.table-row{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;
+}
+
+/* ═══════════════════════════════════════
+   CARDS
+═══════════════════════════════════════ */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;
+  display:flex;flex-direction:column;
+  min-height:0;
+}
+.card-hd{
+  flex-shrink:0;
+  padding:8px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--card2);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:11px;font-weight:700;
+  color:var(--gold3);letter-spacing:0.14em;text-transform:uppercase;
+  display:flex;align-items:center;gap:7px;
+}
+.card-title svg{width:11px;height:11px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.card-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2)}
+.card-body{flex:1;padding:10px 12px;overflow:hidden;display:flex;flex-direction:column;gap:1px}
+
+/* Schedule */
+.sched-item{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:4px 0;border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.sched-item:last-child{border-bottom:none}
+.sched-bar{width:3px;min-height:24px;border-radius:2px;flex-shrink:0;margin-top:2px}
+.sched-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);min-width:32px;padding-top:2px}
+.sched-name{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--text1);font-weight:600;line-height:1.2}
+.sched-type{font-size:11px;color:var(--text2)}
+
+/* Activity */
+.act-stats{display:flex;justify-content:space-between;margin-bottom:8px;flex-shrink:0}
+.act-stat{text-align:center;flex:1}
+.act-n{font-family:'Cormorant Garamond',serif;font-size:clamp(16px,2vw,24px);font-weight:600;color:var(--text1)}
+.act-l{font-size:11px;color:var(--text2);letter-spacing:0.08em;text-transform:uppercase}
+.act-div{width:1px;background:var(--border)}
+.spark-wrap{flex:1;min-height:0;position:relative}
+.spark-wrap canvas{width:100%;height:100%;display:block}
+.act-recent{flex-shrink:0;font-size:9px;color:var(--text3);margin-top:4px;letter-spacing:0.04em}
+
+/* Status */
+.doc-row{
+  display:flex;align-items:center;gap:7px;
+  padding:4px 0;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.doc-row:last-of-type{border-bottom:none}
+.dot7{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.doc-name{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--text1);flex:1}
+.doc-loc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold)}
+.alarm-sec{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.alarm-ttl{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px;flex-shrink:0}
+.alarm-item{display:flex;align-items:flex-start;gap:6px;font-size:12px;padding:2px 0;border-bottom:1px solid rgba(192,57,43,0.12)}
+.alarm-item:last-child{border:none}
+.alarm-item svg{width:11px;height:11px;stroke:#c0392b;fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0;margin-top:1px}
+
+/* ═══════════════════════════════════════
+   TABLE CARD
+═══════════════════════════════════════ */
+.table-card{
+  flex:1;min-height:0;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.table-toolbar{
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 12px;border-bottom:1px solid var(--border);
+  background:var(--card2);gap:8px;flex-wrap:wrap;
+}
+.search-wrap{
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:5px;padding:4px 8px;
+}
+.search-wrap svg{width:11px;height:11px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round}
+.search-wrap input{
+  background:none;border:none;outline:none;
+  font-size:11px;color:var(--text1);width:140px;
+}
+.search-wrap input::placeholder{color:var(--text3)}
+.tbl-count{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)}
+.tbl-scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+.tbl-scroll::-webkit-scrollbar{width:4px}
+.tbl-scroll::-webkit-scrollbar-track{background:transparent}
+.tbl-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+table{width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:2;background:var(--card2)}
+thead th{
+  padding:6px 10px;text-align:left;
+  font-size:10px;font-weight:700;
+  color:var(--text2);letter-spacing:0.10em;text-transform:uppercase;
+  border-bottom:1px solid var(--border);white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(201,168,76,0.04)}
+tbody td{
+  padding:6px 10px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:14px;color:var(--text1);vertical-align:middle;
+}
+.td-mono{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text1)}
+.td-sm{font-size:12px;color:var(--text1)}
+
+/* ═══════════════════════════════════════
+   BADGES
+═══════════════════════════════════════ */
+.badge{
+  display:inline-flex;align-items:center;
+  padding:2px 8px;border-radius:3px;
+  font-family:'Source Sans 3',sans-serif;
+  font-size:9px;font-weight:700;
+  letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;
+}
+.b-notfall   {background:rgba(192,57,43,0.15);color:#e74c3c;border:1px solid rgba(192,57,43,0.3)}
+.b-routine   {background:rgba(39,174,96,0.12);color:#27ae60;border:1px solid rgba(39,174,96,0.3)}
+.b-bgfall    {background:rgba(212,130,10,0.12);color:#d4820a;border:1px solid rgba(212,130,10,0.3)}
+.b-vorsorge  {background:rgba(41,128,185,0.12);color:#2980b9;border:1px solid rgba(41,128,185,0.3)}
+.b-verwaltung{background:rgba(108,92,231,0.12);color:#8b7fde;border:1px solid rgba(108,92,231,0.25)}
+
+/* Avatar */
+.avatar{
+  width:24px;height:24px;border-radius:5px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-size:10px;font-weight:700;
+  border:1px solid var(--border);
+}
+/* Action btns */
+.act-btn{
+  width:22px;height:22px;border-radius:3px;
+  border:1px solid var(--border);background:var(--gold-dim);
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;
+}
+.act-btn:hover{border-color:var(--border2)}
+.act-btn svg{width:10px;height:10px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Pulse dot */
+.pulse{width:6px;height:6px;border-radius:50%;animation:pd 1.4s ease-in-out infinite}
+@keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.6)}}
+
+/* ═══════════════════════════════════════
+   SIMULATE TAB
+═══════════════════════════════════════ */
+.sim-wrap{
+  flex:1;overflow:hidden;
+  display:grid;grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr auto;
+  gap:8px;padding:10px 16px;
+  min-height:0;
+}
+.sim-form{
+  grid-column:1;grid-row:1;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;
+  display:flex;flex-direction:column;gap:6px;
+  overflow:hidden;min-height:0;
+}
+.sim-result{
+  grid-column:2;grid-row:1;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;
+  display:flex;flex-direction:column;
+  overflow:hidden;min-height:0;
+}
+.voice-bar{
+  grid-column:1/3;grid-row:2;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  align-items:start;flex-shrink:0;
+}
+.sec-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:11px;font-weight:700;color:var(--gold3);
+  letter-spacing:0.14em;text-transform:uppercase;
+  display:flex;align-items:center;gap:7px;
+  padding-bottom:8px;border-bottom:1px solid var(--border);
+  margin-bottom:8px;flex-shrink:0;
+}
+.sec-title svg{width:11px;height:11px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round}
+.lbl{display:block;font-size:11px;font-weight:600;color:var(--text2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px}
+.inp{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:5px;color:var(--text1);font-size:12px;
+  padding:6px 9px;outline:none;transition:border-color 0.15s;
+}
+.inp::placeholder{color:var(--text3)}
+.inp:focus{border-color:var(--gold3)}
+textarea.inp{resize:none;line-height:1.5}
+.btn-gold{
+  background:linear-gradient(135deg,var(--gold3),var(--gold));
+  color:var(--bg);font-family:'Cormorant Garamond',serif;
+  font-size:12px;font-weight:700;letter-spacing:0.08em;
+  padding:7px 16px;border-radius:5px;
+  display:inline-flex;align-items:center;gap:6px;
+  box-shadow:0 2px 10px rgba(201,168,76,0.2);
+  transition:filter 0.15s,transform 0.1s;
+}
+.btn-gold svg{width:11px;height:11px;stroke:var(--bg);fill:none;stroke-width:2.2;stroke-linecap:round}
+.btn-gold:hover{filter:brightness(1.1)}
+.btn-gold:active{transform:scale(0.98)}
+.btn-gold:disabled{opacity:0.4;cursor:not-allowed}
+.btn-out{
+  background:transparent;border:1px solid var(--border);
+  color:var(--text2);font-family:'Cormorant Garamond',serif;
+  font-size:12px;letter-spacing:0.06em;
+  padding:7px 13px;border-radius:5px;
+  transition:all 0.15s;
+}
+.btn-out:hover{border-color:var(--border2);color:var(--gold)}
+.btn-row{display:flex;gap:7px;align-items:center;flex-shrink:0}
+.spinner{width:13px;height:13px;border-radius:50%;border:2px solid var(--border2);border-top-color:var(--gold);animation:spin 0.7s linear infinite;display:inline-block;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.result-box{
+  flex:1;background:var(--bg3);border:1px solid var(--border);
+  border-radius:5px;padding:10px 12px;
+  font-family:'Cormorant Garamond',serif;font-size:14px;
+  color:var(--text2);font-style:italic;line-height:1.6;
+  overflow-y:auto;
+}
+.result-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;flex-shrink:0}
+.vtab{padding:3px 12px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:0.08em;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all .15s}
+.vtab-active{background:var(--gold-dim)!important;color:var(--gold)!important;border-color:var(--border2)!important}
+.meta-chip{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  background:var(--gold-dim);border:1px solid var(--border);
+  border-radius:3px;padding:2px 7px;color:var(--text3);
+}
+.voice-info{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:5px;padding:8px 10px;
+  font-size:11px;color:var(--text2);line-height:1.6;
+}
+.voice-info strong{color:var(--gold)}
+audio{width:100%;border-radius:3px;opacity:0.85;margin-top:6px;display:block}
+
+/* ═══════════════════════════════════════
+   PATIENTEN TAB
+═══════════════════════════════════════ */
+.full-table-wrap{
+  flex:1;overflow:hidden;
+  display:flex;flex-direction:column;
+  padding:10px 16px;
+  min-height:0;
+}
+
+/* ═══════════════════════════════════════
+   STATISTIK TAB
+═══════════════════════════════════════ */
+.stats-wrap{
+  flex:1;overflow:hidden;
+  display:flex;flex-direction:column;
+  padding:10px 16px;gap:8px;
+  min-height:0;
+}
+.kpi-row{
+  flex-shrink:0;
+  display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
+}
+.kpi{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;
+  border-top:2px solid var(--border);
+}
+.kpi-n{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(28px,3vw,44px);font-weight:700;
+  color:var(--text1);line-height:1;
+}
+.kpi-l{font-size:11px;color:var(--text2);letter-spacing:0.08em;text-transform:uppercase;margin-top:5px;font-weight:600}
+.charts-row{
+  flex:1;min-height:0;
+  display:grid;grid-template-columns:1fr 1.6fr;gap:8px;
+}
+.chart-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.chart-title{
+  font-family:'Cormorant Garamond',serif;font-size:11px;font-weight:700;
+  color:var(--gold3);letter-spacing:0.14em;text-transform:uppercase;
+  margin-bottom:10px;display:flex;align-items:center;gap:6px;flex-shrink:0;
+}
+.chart-title svg{width:11px;height:11px;stroke:var(--gold);fill:none;stroke-width:2}
+.chart-canvas-wrap{flex:1;min-height:0;position:relative}
+.chart-canvas-wrap canvas{width:100%!important;height:100%!important;display:block}
+
+/* ═══════════════════════════════════════
+   EINSTELLUNGEN TAB
+═══════════════════════════════════════ */
+.sett-wrap{
+  flex:1;overflow-y:auto;
+  padding:10px 16px;
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:8px;align-content:start;
+}
+.sett-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:14px;
+}
+
+/* ═══════════════════════════════════════
+   ALERTS
+═══════════════════════════════════════ */
+.alert{
+  padding:7px 10px;border-radius:5px;
+  font-size:11px;margin-bottom:6px;flex-shrink:0;
+}
+.alert-error{background:rgba(192,57,43,0.15);color:#e74c3c;border:1px solid rgba(192,57,43,0.3)}
+.alert-success{background:rgba(39,174,96,0.12);color:#27ae60;border:1px solid rgba(39,174,96,0.3)}
+.alert-warn{background:rgba(212,130,10,0.12);color:#d4820a;border:1px solid rgba(212,130,10,0.3)}
+.hidden{display:none!important}
+
+/* ═══════════════════════════════════════
+   ANRUFE TAB
+═══════════════════════════════════════ */
+.anrufe-wrap{
+  flex:1;overflow:hidden;
+  display:flex;flex-direction:column;
+  padding:10px 16px;min-height:0;
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media(max-width:1100px){
+  .three-col{grid-template-columns:1fr 1fr;grid-template-rows:auto auto}
+  .three-col .card:last-child{grid-column:1/3}
+  .kpi-row{grid-template-columns:repeat(3,1fr)}
+  .charts-row{grid-template-columns:1fr}
+  .sett-wrap{grid-template-columns:1fr}
+}
+@media(max-width:780px){
+  .three-col{grid-template-columns:1fr}
+  .three-col .card:last-child{grid-column:auto}
+  .sim-wrap{grid-template-columns:1fr;grid-template-rows:auto auto auto}
+  .sim-form,.sim-result{grid-column:1}
+  .voice-bar{grid-column:1;grid-template-columns:1fr}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .logo-text{display:none}
+  .user-name{display:none}
+  .topbar-time{display:none}
+  body{font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-icon">M</div>
+    <div class="logo-text">MVZ PRAXIS <span>|</span> <span style="color:var(--gold)">BERLIN</span></div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-time" id="clockEl">--:-- Uhr</div>
+    <div class="lang-btns">
+      <button class="lang-btn active" id="lDE">DE</button>
+    </div>
+    <div class="theme-swatches" id="themeSwatches">
+      <button class="swatch active" onclick="setTheme('silver')" title="Silver" data-theme-btn="silver" style="background:linear-gradient(135deg,#d0d2d6 50%,#8b0e18 50%)"></button>
+      <button class="swatch" onclick="setTheme('gunmetal')" title="Gunmetal" data-theme-btn="gunmetal" style="background:linear-gradient(135deg,#4a4d56 50%,#c0242e 50%)"></button>
+    </div>
+    <span class="user-name" id="drNameEl">Dr. Roman Grynko</span>
+    <div class="notif-wrap">
+      <button class="notif-btn">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <span class="notif-badge" id="notifBadge">0</span>
+    </div>
+  </div>
+</header>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="mainNav">
+  <div class="nav-item active" onclick="showTab('dashboard',this)">
+    <span data-i18n="navDash">DASHBOARD</span>
+    <div class="nav-dot"></div>
+  </div>
+  <div class="nav-item" onclick="showTab('anrufe',this)">
+    <span data-i18n="navCalls">ANRUFE</span>
+  </div>
+  <div class="nav-item" onclick="showTab('simulate',this)">
+    <span data-i18n="navSim">SIMULATION</span>
+  </div>
+  <div class="nav-item" onclick="showTab('patienten',this)">
+    <span data-i18n="navPat">PATIENTEN</span>
+  </div>
+  <div class="nav-item" onclick="showTab('statistik',this)">
+    <span data-i18n="navStats">STATISTIK</span>
+  </div>
+  <div class="nav-item" onclick="showTab('einstellungen',this)">
+    <span data-i18n="navSet">EINSTELLUNGEN</span>
+  </div>
+</nav>
+
+<!-- WORKSPACE -->
+<div class="workspace">
+
+<!-- ══ DASHBOARD ══ -->
+<div class="tab-pane active" id="tab-dashboard">
+<div class="dash-wrap">
+
+  <!-- Welcome -->
+  <div class="welcome">
+    <div>
+      <div class="welcome-label" data-i18n="welLabel">Übersicht</div>
+      <div class="welcome-name">
+        <span data-i18n="welGreet">Willkommen,</span>
+        <em id="welNameEl"> Dr. Roman Grynko</em>
+      </div>
+    </div>
+    <div class="status-pill">
+      <svg id="heartSvg" width="14" height="14" viewBox="0 0 24 24" style="transition:transform 0.06s">
+        <path fill="#e74c3c" stroke="#e74c3c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+      <span data-i18n="sysOn">KI-System aktiv</span>
+    </div>
+  </div>
+
+  <!-- Three col -->
+  <div class="three-col">
+
+    <!-- Schedule -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span data-i18n="schedTitle">Terminplan Heute</span>
+        </div>
+        <span class="card-date" id="todayEl"></span>
+      </div>
+      <div class="card-body">
+        <div class="sched-item"><div class="sched-bar" style="background:#e74c3c"></div><div class="sched-time">09:00</div><div><div class="sched-name">Müller, Karl</div><div class="sched-type">Check-up</div></div></div>
+        <div class="sched-item"><div class="sched-bar" style="background:var(--gold)"></div><div class="sched-time">10:30</div><div><div class="sched-name">Schmidt, Elke</div><div class="sched-type">Beratung</div></div></div>
+        <div class="sched-item"><div class="sched-bar" style="background:#27ae60"></div><div class="sched-time">11:45</div><div><div class="sched-name">Schneider, Jan</div><div class="sched-type">Follow-up</div></div></div>
+        <div class="sched-item"><div class="sched-bar" style="background:#2980b9"></div><div class="sched-time">14:00</div><div><div class="sched-name">Operativer Eingriff</div><div class="sched-type">OP3</div></div></div>
+        <div class="sched-item"><div class="sched-bar" style="background:#9b59b6"></div><div class="sched-time">16:00</div><div><div class="sched-name">Weber, Klaus</div><div class="sched-type">Vorsorge</div></div></div>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span data-i18n="actTitle">Patienten Aktivität</span>
+        </div>
+        <button onclick="loadLogs()" style="font-size:11px;color:var(--text3);border:1px solid var(--border);border-radius:3px;padding:2px 7px;background:var(--gold-dim)">↻</button>
+      </div>
+      <div class="card-body">
+        <div class="act-stats">
+          <div class="act-stat"><div class="act-n" id="dTotal">—</div><div class="act-l" data-i18n="lCalls">Anrufe</div></div>
+          <div class="act-div"></div>
+          <div class="act-stat"><div class="act-n" id="dNotfall" style="color:#e74c3c">—</div><div class="act-l">Notfall</div></div>
+          <div class="act-div"></div>
+          <div class="act-stat"><div class="act-n" id="dRoutine" style="color:#27ae60">—</div><div class="act-l" data-i18n="lRoutine">Routine</div></div>
+        </div>
+        <div class="spark-wrap">
+          <canvas id="sparkC"></canvas>
+        </div>
+        <div class="act-recent" id="recentEl"><span data-i18n="lRecent">Zuletzt: </span><span>—</span></div>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span data-i18n="statusTitle">Status & Alarme</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="doc-row"><div class="dot7" style="background:#27ae60;box-shadow:0 0 5px #27ae60"></div><div class="doc-name">KI-Rezeption</div><div class="doc-loc">AKTIV</div></div>
+        <div class="doc-row"><div class="dot7" style="background:#27ae60;box-shadow:0 0 5px #27ae60"></div><div class="doc-name">Google Sheets</div><div class="doc-loc">VERB.</div></div>
+        <div class="doc-row"><div class="dot7" style="background:#27ae60;box-shadow:0 0 5px #27ae60"></div><div class="doc-name">ElevenLabs TTS</div><div class="doc-loc">AKTIV</div></div>
+        <div class="alarm-sec" id="alarmSec">
+          <div class="alarm-ttl" data-i18n="lAlarms">Alarme</div>
+          <div class="alarm-item"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="font-size:10px;color:var(--text3);font-style:italic">Lade…</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Log table -->
+  <div class="table-row">
+    <div class="table-card">
+      <div class="card-hd">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span data-i18n="callStatus">Anruf-Status</span>
+        </div>
+        <button onclick="loadLogs()" style="font-size:11px;color:var(--text3);border:1px solid var(--border);border-radius:3px;padding:2px 7px;background:var(--gold-dim)">↻ Aktualisieren</button>
+      </div>
+      <div class="table-toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Patient suchen…" oninput="filterDash(this.value)">
+        </div>
+        <span class="tbl-count" id="dashCount">0 Einträge</span>
+      </div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr>
+            <th data-i18n="thPat">PATIENT</th>
+            <th data-i18n="thType">TYP</th>
+            <th>OUTCOME</th>
+            <th data-i18n="thDate">DATUM</th>
+            <th data-i18n="thIns">VERS.</th>
+            <th>AKTION</th>
+          </tr></thead>
+          <tbody id="dashTBody">
+            <tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text3);font-style:italic">Laden…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /dash-wrap -->
+</div><!-- /tab-dashboard -->
+
+<!-- ══ ANRUFE ══ -->
+<div class="tab-pane" id="tab-anrufe">
+<div class="anrufe-wrap">
+  <div class="table-card" style="flex:1">
+    <div class="card-hd">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span data-i18n="allCalls">Alle Anrufe</span>
+      </div>
+      <button onclick="loadLogs()" style="font-size:11px;color:var(--text3);border:1px solid var(--border);border-radius:3px;padding:2px 7px;background:var(--gold-dim)">↻</button>
+    </div>
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Suchen…" oninput="filterCalls(this.value)">
+      </div>
+      <span class="tbl-count" id="callsCount">0</span>
+    </div>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr>
+          <th data-i18n="thPat">PATIENT</th>
+          <th>TRIAGE</th>
+          <th>OUTCOME</th>
+          <th>ZEITSTEMPEL</th>
+          <th>VERSION</th>
+        </tr></thead>
+        <tbody id="callsTBody">
+          <tr><td colspan="5" style="text-align:center;padding:16px;color:var(--text3);font-style:italic">Laden…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ SIMULATE ══ -->
+<div class="tab-pane" id="tab-simulate">
+<div class="sim-wrap">
+
+  <div class="sim-form">
+    <div class="sec-title">
+      <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span data-i18n="simTitle">Anruf simulieren</span>
+    </div>
+    <div id="simAlert" class="hidden"></div>
+    <div><label class="lbl" data-i18n="simName">Patient</label><input class="inp" id="simName" placeholder="Hans Müller"></div>
+    <div><label class="lbl" data-i18n="simPhone">Telefon</label><input class="inp" id="simPhone" placeholder="4915112345678"></div>
+    <div style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <label class="lbl" data-i18n="simTrans">Gesprächsprotokoll</label>
+      <textarea class="inp" id="simTranscript" style="flex:1;min-height:60px" placeholder="Ich habe starke Zahnschmerzen…"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn-gold" onclick="simulateCall()" id="simBtn">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span data-i18n="simBtn">An KI senden</span>
+      </button>
+      <button class="btn-out" onclick="fillTest()" data-i18n="simFill">Testdaten</button>
+      <span id="simSpinner" class="spinner hidden"></span>
+    </div>
+  </div>
+
+  <div class="sim-result">
+    <div class="sec-title">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>KI-Antwort — Zweisprachig</span>
+    </div>
+    <div id="simResultBox" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:60px">
+      <div style="color:var(--text3);font-style:italic;font-family:'Cormorant Garamond',serif;font-size:13px;padding:4px">Anfrage senden um Antwort zu sehen&hellip;</div>
+    </div>
+    <div class="result-meta" id="simMeta"></div>
+  </div>
+
+  <div class="voice-bar">
+    <!-- LEFT: controls -->
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="sec-title" style="margin-bottom:0;padding-bottom:6px">
+        <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <span>Sprachvorschau — ElevenLabs Aria Multilingual</span>
+      </div>
+      <div id="voiceAlert" class="hidden"></div>
+      <!-- language tabs -->
+      <div style="display:flex;gap:4px">
+        <button id="vtab-de" onclick="setVoiceLang('de')" class="vtab vtab-active">&#127465;&#127466; DE</button>
+        <button id="vtab-custom" onclick="setVoiceLang('custom')" class="vtab">&#9999;&#65039; Eigener</button>
+      </div>
+      <label class="lbl" id="voiceTextLabel">Text (DE)</label>
+      <textarea class="inp" id="voiceText" rows="3" placeholder="Guten Tag, wie kann ich Ihnen helfen?"></textarea>
+      <div class="btn-row">
+        <button class="btn-gold" onclick="previewVoice()" id="voiceBtn">
+          <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <span id="voiceBtnLabel">DE abspielen</span>
+        </button>
+        <span id="voiceSpinner" class="spinner hidden"></span>
+        <span id="voiceLangBadge" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);border:1px solid var(--border);border-radius:3px;padding:2px 7px">DE</span>
+      </div>
+    </div>
+    <!-- RIGHT: player + info -->
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="voice-info">
+        <strong>Aria</strong> · ElevenLabs Multilingual v2<br>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)">9BWtsMINqrJLrRacOk9x</span><br>
+        <span style="font-size:10px;color:var(--text3)">&#127465;&#127466; Deutsch</span>
+      </div>
+      <audio id="audioPlayer" controls style="display:none;width:100%;border-radius:3px"></audio>
+      <div id="audioStatus" style="font-size:10px;color:var(--text3);font-style:italic"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ══ PATIENTEN ══ -->
+<div class="tab-pane" id="tab-patienten">
+<div class="full-table-wrap">
+  <div class="table-card" style="flex:1">
+    <div class="card-hd">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <span data-i18n="patTitle">Patientendatenbank</span>
+      </div>
+      <button onclick="loadPatients()" style="font-size:11px;color:var(--text3);border:1px solid var(--border);border-radius:3px;padding:2px 7px;background:var(--gold-dim)">↻</button>
+    </div>
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Patient suchen…" oninput="filterPats(this.value)">
+      </div>
+      <span class="tbl-count" id="patCount">0</span>
+    </div>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr>
+          <th>ID</th><th>PATIENT</th><th>TELEFON</th><th>GEB.</th><th>VERSICHERUNG</th><th>LETZTER BESUCH</th><th>NOTIZ</th>
+        </tr></thead>
+        <tbody id="patTBody">
+          <tr><td colspan="7" style="text-align:center;padding:16px;color:var(--text3);font-style:italic">Laden…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ STATISTIK ══ -->
+<div class="tab-pane" id="tab-statistik">
+<div class="stats-wrap">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-n" id="kT">—</div><div class="kpi-l" data-i18n="kpiTotal">Gesamt</div></div>
+    <div class="kpi" style="border-top-color:#e74c3c"><div class="kpi-n" style="color:#e74c3c" id="kNF">—</div><div class="kpi-l">Notfall</div></div>
+    <div class="kpi" style="border-top-color:#27ae60"><div class="kpi-n" style="color:#27ae60" id="kRT">—</div><div class="kpi-l">Routine</div></div>
+    <div class="kpi" style="border-top-color:#d4820a"><div class="kpi-n" style="color:#d4820a" id="kBG">—</div><div class="kpi-l">BG-Fall</div></div>
+    <div class="kpi" style="border-top-color:#2980b9"><div class="kpi-n" style="color:#2980b9" id="kVS">—</div><div class="kpi-l">Vorsorge</div></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+        <span data-i18n="chartPie">Triage Verteilung</span>
+      </div>
+      <div id="triageBars" style="flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:6px;padding:4px 0"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span data-i18n="chartBar">Aktivität (letzte 7 Tage)</span>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="barC"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ EINSTELLUNGEN ══ -->
+<div class="tab-pane" id="tab-einstellungen">
+<div class="sett-wrap">
+  <div class="sett-card">
+    <div class="sec-title">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Verbindung
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div><label class="lbl">Webhook URL (WF3)</label><input class="inp" id="sWebhook" value="https://gringoportal.app.n8n.cloud/webhook/clinic-dashboard"></div>
+      <div><label class="lbl">Voice ID (ElevenLabs)</label><input class="inp" id="sVoiceId" value="CoFoB7a7PXA8RBsMHbua"></div>
+      <div><label class="lbl">Auto-Refresh (Sek.)</label><input class="inp" type="number" id="sRefresh" value="60" min="10" max="300"></div>
+    </div>
+  </div>
+  <div class="sett-card">
+    <div class="sec-title">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profil
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div><label class="lbl">Arztname (Anzeige)</label><input class="inp" id="sDrName" value="Dr. Roman Grynko"></div>
+      <div><label class="lbl">Klinik</label><input class="inp" id="sClinic" value="MVZ Praxis | Berlin"></div>
+    </div>
+  </div>
+  <div class="sett-card" style="grid-column:1/-1">
+    <div class="btn-row" style="gap:8px">
+      <button class="btn-gold" onclick="saveSettings()">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Speichern
+      </button>
+    </div>
+    <div id="settAlert" class="hidden" style="margin-top:8px"></div>
+  </div>
+</div>
+</div>
+
+</div><!-- /workspace -->
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-label">Live</div>
+  <div class="ticker-inner">
+    <div class="ticker-track" id="tickerTrack"></div>
+  </div>
+</div>
+
+<script>
+/* ──────────────────────────────────────────────
+   CONFIG
+────────────────────────────────────────────── */
+let CFG={
+  WEBHOOK:'https://gringoportal.app.n8n.cloud/webhook/clinic-dashboard',
+  VOICE_ID:'9BWtsMINqrJLrRacOk9x',
+  DR_NAME:'Dr. Roman Grynko',
+  REFRESH_MS:60000,
+};
+let refreshTimer=null;
+
+/* ── TICKER DATA ── */
+const TICKER_DATA = [
+  {cls:'tdot-ok',    t:'Station 3: Alle Patienten stabil'},
+  {cls:'tdot-alert', t:'NOTFALL aktiv — Zimmer 104: Herzinfarkt Verdacht'},
+  {cls:'tdot-ok',    t:'Intensivstation: 3 von 8 Betten belegt'},
+  {cls:'tdot-warn',  t:'Wartezeit Kardiologie erhöht — 45 Min.'},
+  {cls:'tdot-ok',    t:'Medikamentenlieferung Apotheke eingetroffen — 09:42'},
+  {cls:'tdot-alert', t:'NOTFALL aktiv — Zimmer 112: Schwere Atemnot'},
+  {cls:'tdot-ok',    t:'Dr. Bauer: Visite Station 3 beginnt in 15 Min.'},
+  {cls:'tdot-warn',  t:'Laborergebnisse Patient Fischer, H. ausstehend'},
+  {cls:'tdot-ok',    t:'OP-Saal 2 vorbereitet — OP 13:30 planmäßig'},
+  {cls:'tdot-ok',    t:'Blutbank: Vorrat ausreichend — Alle Gruppen verfügbar'},
+  {cls:'tdot-warn',  t:'MRT-Gerät 2: Wartung bis 14:00 Uhr'},
+  {cls:'tdot-ok',    t:'Neue Einweisung: Müller, E. — Kardiologie — Zimmer 108'},
+  {cls:'tdot-warn',  t:'Bettenbelegung Station 2: 94% — Aufnahme eingeschränkt'},
+  {cls:'tdot-ok',    t:'COVID-Protokoll: Alle Tests negativ — Station 4 freigegeben'},
+];
+(function buildTicker(){
+  const track = document.getElementById('tickerTrack');
+  if (!track) return;
+  const html = [...TICKER_DATA,...TICKER_DATA].map(i=>
+    `<div class="ticker-item"><span class="ticker-dot ${i.cls}"></span>${i.t}</div>`
+  ).join('');
+  track.innerHTML = html;
+})();
+
+/* ──────────────────────────────────────────────
+   THEME
+────────────────────────────────────────────── */
+let curTheme='silver';
+function setTheme(t){
+  curTheme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelectorAll('[data-theme-btn]').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-theme-btn') === t);
+  });
+}
+function toggleTheme(){ setTheme(curTheme==='silver'?'gunmetal':'silver'); }
+
+/* ──────────────────────────────────────────────
+   i18n
+────────────────────────────────────────────── */
+const I18N={
+  de:{navDash:'DASHBOARD',navCalls:'ANRUFE',navSim:'SIMULATION',navPat:'PATIENTEN',navStats:'STATISTIK',navSet:'EINSTELLUNGEN',welLabel:'Übersicht',welGreet:'Willkommen,',schedTitle:'Terminplan Heute',actTitle:'Patienten Aktivität',statusTitle:'Status & Alarme',callStatus:'Anruf-Status',thPat:'PATIENT',thType:'TYP',thDate:'DATUM',thIns:'VERS.',lCalls:'Anrufe',lRoutine:'Routine',lRecent:'Zuletzt:',sysOn:'KI-System aktiv',lAlarms:'Alarme',allCalls:'Alle Anrufe',simTitle:'Anruf simulieren',simName:'Patient',simPhone:'Telefon',simTrans:'Gesprächsprotokoll',simBtn:'An KI senden',simFill:'Testdaten',simResult:'KI-Antwort',simWait:'Anfrage senden…',voiceTitle:'Sprachvorschau — ElevenLabs',voiceText:'Text',voiceBtn:'Abspielen',patTitle:'Patientendatenbank',kpiTotal:'Gesamt',chartPie:'Triage Verteilung',chartBar:'Aktivität'},
+};
+let curLang='de';
+function t(k){return I18N.de[k]||k}
+function setLang(l){}
+
+/* ──────────────────────────────────────────────
+   CLOCK & DATE
+────────────────────────────────────────────── */
+function tick(){
+  const n=new Date();
+  const hh=String(n.getHours()).padStart(2,'0'),mm=String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('clockEl').textContent=`${hh}:${mm} Uhr`;
+  const dd=String(n.getDate()).padStart(2,'0'),mo=String(n.getMonth()+1).padStart(2,'0');
+  const el=document.getElementById('todayEl');if(el)el.textContent=`${dd}.${mo}`;
+}
+setInterval(tick,1000);tick();
+
+/* ──────────────────────────────────────────────
+   HEART
+────────────────────────────────────────────── */
+let hS=1,hD=1;
+function beatHeart(){
+  const svg=document.getElementById('heartSvg');if(!svg)return;
+  hS+=hD*0.04;if(hS>=1.35)hD=-1;if(hS<=0.92)hD=1;
+  svg.style.transform=`scale(${hS})`;
+  svg.style.filter=`drop-shadow(0 0 ${((hS-0.92)*14).toFixed(1)}px rgba(231,76,60,0.9))`;
+}
+setInterval(beatHeart,60);
+
+/* ──────────────────────────────────────────────
+   TRIAGE
+────────────────────────────────────────────── */
+const TC={
+  NOTFALL:   {l:'Notfall',    c:'b-notfall',  col:'#e74c3c'},
+  ROUTINE:   {l:'Routine',    c:'b-routine',  col:'#27ae60'},
+  BG_FALL:   {l:'BG-Fall',    c:'b-bgfall',   col:'#d4820a'},
+  VORSORGE:  {l:'Vorsorge',   c:'b-vorsorge', col:'#2980b9'},
+  VERWALTUNG:{l:'Verwaltung', c:'b-verwaltung',col:'#8b7fde'},
+};
+function badge(type){const c=TC[type]||TC.VERWALTUNG;return`<span class="badge ${c.c}">${c.l}</span>`}
+function ini(n){return(n||'??').split(' ').map(p=>p[0]||'').join('').toUpperCase().slice(0,2)}
+function fmtTs(ts){
+  if(!ts)return'—';
+  try{const d=new Date(ts);return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});}
+  catch{return ts}
+}
+
+/* ──────────────────────────────────────────────
+   API
+────────────────────────────────────────────── */
+async function api(action,payload={},timeout=60000){
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),timeout);
+  try{
+    const r=await fetch(CFG.WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...payload}),signal:ctrl.signal});
+    clearTimeout(timer);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const txt=await r.text();
+    if(!txt||!txt.trim())throw new Error('Leere Antwort');
+    return JSON.parse(txt);
+  }catch(e){clearTimeout(timer);if(e.name==='AbortError')throw new Error('Timeout ('+timeout/1000+'s)');throw e}
+}
+
+/* ──────────────────────────────────────────────
+   LOGS
+────────────────────────────────────────────── */
+let allLogs=[];
+async function loadLogs(){
+  try{
+    const d=await api('get_logs',{},20000);
+    allLogs=d.logs||[];
+    renderDash(allLogs);
+    renderCalls(allLogs);
+    updateStats(allLogs);
+    drawSpark(allLogs);
+    document.getElementById('notifBadge').textContent=allLogs.filter(l=>l.action==='NOTFALL').length||0;
+  }catch(e){
+    const row=`<tr><td colspan="6" style="text-align:center;padding:12px;color:#e74c3c;font-style:italic">✕ ${e.message}</td></tr>`;
+    document.getElementById('dashTBody').innerHTML=row;
+  }
+}
+
+function renderDash(logs){
+  document.getElementById('dashCount').textContent=logs.length+' Einträge';
+  const tb=document.getElementById('dashTBody');
+  if(!logs.length){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--text3);font-style:italic">Keine Einträge</td></tr>`;return}
+  tb.innerHTML=logs.slice(0,30).map(r=>{
+    const cfg=TC[r.action]||TC.VERWALTUNG;
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <div class="avatar" style="background:${cfg.col}18;border-color:${cfg.col}33;color:${cfg.col}">${ini(r.patient_ref)}</div>
+        <span style="font-weight:500">${r.patient_ref||'—'}</span>
+        ${r.action==='NOTFALL'?`<div class="pulse" style="background:#e74c3c;box-shadow:0 0 5px #e74c3c"></div>`:''}
+      </div></td>
+      <td>${badge(r.action)}</td>
+      <td class="td-sm" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.outcome||'—'}</td>
+      <td class="td-mono">${fmtTs(r.timestamp)}</td>
+      <td class="td-sm">${r.call_id||'—'}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="act-btn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+        <button class="act-btn"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      </div></td>
+    </tr>`}).join('');
+}
+
+function renderCalls(logs){
+  document.getElementById('callsCount').textContent=logs.length+' Einträge';
+  const tb=document.getElementById('callsTBody');
+  if(!logs.length){tb.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:12px;color:var(--text3);font-style:italic">Keine Einträge</td></tr>`;return}
+  tb.innerHTML=logs.map(r=>`<tr>
+    <td style="font-weight:500">${r.patient_ref||'—'}</td>
+    <td>${badge(r.action)}</td>
+    <td class="td-sm" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.outcome||'—'}</td>
+    <td class="td-mono">${fmtTs(r.timestamp)}</td>
+    <td class="td-mono" style="font-size:9px">${r.workflow_version||'—'}</td>
+  </tr>`).join('');
+}
+
+function filterDash(q){renderDash(allLogs.filter(l=>JSON.stringify(l).toLowerCase().includes(q.toLowerCase())))}
+function filterCalls(q){renderCalls(allLogs.filter(l=>JSON.stringify(l).toLowerCase().includes(q.toLowerCase())))}
+
+function updateStats(logs){
+  document.getElementById('dTotal').textContent=logs.length;
+  document.getElementById('dNotfall').textContent=logs.filter(l=>l.action==='NOTFALL').length;
+  document.getElementById('dRoutine').textContent=logs.filter(l=>l.action==='ROUTINE').length;
+  const recent=logs.slice(-3).map(l=>(l.patient_ref||'?').split(' ').pop()||'?');
+  const el=document.getElementById('recentEl');
+  if(el)el.innerHTML=`<span>${t('lRecent')} </span><span style="color:var(--text2)">${recent.join(', ')||'—'}</span>`;
+  const notfalls=logs.filter(l=>l.action==='NOTFALL').slice(-3);
+  const as=document.getElementById('alarmSec');
+  if(!as)return;
+  if(!notfalls.length){as.innerHTML=`<div class="alarm-ttl">${t('lAlarms')}</div><div style="font-size:10px;color:var(--text3);font-style:italic;padding:3px 0">Keine aktiven Alarme</div>`;return}
+  as.innerHTML=`<div class="alarm-ttl">${t('lAlarms')}</div>`+notfalls.map(r=>`<div class="alarm-item"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg><span style="color:var(--text2)">Notfall: <strong style="color:#e74c3c">${r.patient_ref||'Unbekannt'}</strong></span></div>`).join('');
+}
+
+/* ──────────────────────────────────────────────
+   SPARKLINE
+────────────────────────────────────────────── */
+function drawSpark(logs){
+  const canvas=document.getElementById('sparkC');if(!canvas)return;
+  const wrap=canvas.parentElement;
+  canvas.width=wrap.clientWidth||220;canvas.height=wrap.clientHeight||50;
+  const ctx=canvas.getContext('2d');const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const now=new Date();const buckets=Array(8).fill(0);
+  logs.forEach(l=>{if(!l.timestamp)return;const d=new Date(l.timestamp);const diff=Math.floor((now-d)/3600000);if(diff>=0&&diff<8)buckets[7-diff]++});
+  const max=Math.max(...buckets,1);
+  const pts=buckets.map((v,i)=>({x:i/7*(W-16)+8,y:H-5-(v/max*(H-12))}));
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'rgba(201,168,76,0.28)');g.addColorStop(1,'rgba(201,168,76,0.02)');
+  ctx.beginPath();ctx.moveTo(pts[0].x,H);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,H);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle='rgba(201,168,76,0.7)';ctx.lineWidth=1.5;ctx.stroke();
+}
+
+/* ──────────────────────────────────────────────
+   PATIENTS
+────────────────────────────────────────────── */
+let allPats=[];
+async function loadPatients(){
+  try{
+    const d=await api('get_patients',{},15000);
+    allPats=d.patients||[];renderPats(allPats);
+  }catch(e){document.getElementById('patTBody').innerHTML=`<tr><td colspan="7" style="text-align:center;padding:12px;color:#e74c3c;font-style:italic">✕ ${e.message}</td></tr>`}
+}
+function renderPats(pats){
+  document.getElementById('patCount').textContent=pats.length+' Patienten';
+  document.getElementById('patTBody').innerHTML=pats.map(p=>`<tr>
+    <td class="td-mono">${p.patient_id||'—'}</td>
+    <td><div style="display:flex;align-items:center;gap:7px">
+      <div class="avatar" style="background:var(--gold-dim);color:var(--gold)">${ini(p.name)}</div>
+      <span style="font-weight:500">${p.name||'—'}</span>
+    </div></td>
+    <td class="td-mono">${p.phone||'—'}</td>
+    <td class="td-mono">${p.dob||'—'}</td>
+    <td class="td-sm">${p.insurance||'—'}</td>
+    <td class="td-mono">${p.last_visit||'—'}</td>
+    <td class="td-sm" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.notes||'—'}</td>
+  </tr>`).join('')||`<tr><td colspan="7" style="text-align:center;padding:12px;color:var(--text3);font-style:italic">Keine Patienten</td></tr>`;
+}
+function filterPats(q){renderPats(allPats.filter(p=>JSON.stringify(p).toLowerCase().includes(q.toLowerCase())))}
+
+/* ──────────────────────────────────────────────
+   STATS
+────────────────────────────────────────────── */
+async function loadStats(){
+  try{
+    const d=await api('get_stats',{},15000);
+    const s=d.stats||{};const bt=s.by_type||{};
+    document.getElementById('kT').textContent=s.total_calls||0;
+    document.getElementById('kNF').textContent=bt.NOTFALL||0;
+    document.getElementById('kRT').textContent=bt.ROUTINE||0;
+    document.getElementById('kBG').textContent=bt.BG_FALL||0;
+    document.getElementById('kVS').textContent=bt.VORSORGE||0;
+    drawDonut(bt);drawBar(bt);
+  }catch(e){console.error('loadStats:',e)}
+}
+const CC={NOTFALL:'#c0392b',ROUTINE:'#27ae60',BG_FALL:'#d4820a',VORSORGE:'#2980b9',VERWALTUNG:'#8b7fde'};
+function drawDonut(bt){
+  const wrap=document.getElementById('triageBars');if(!wrap)return;
+  const types=Object.keys(bt).filter(k=>bt[k]>0);
+  if(!types.length){wrap.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:20px">Keine Daten</div>';return;}
+  const max=Math.max(...types.map(k=>bt[k]),1);
+  wrap.innerHTML=types.map(type=>{
+    const pct=Math.round(bt[type]/max*100);
+    const color=CC[type]||'#888';
+    const label=TC[type]?.l||type;
+    return `<div style="display:flex;align-items:center;gap:8px">
+      <div style="width:62px;font-size:11px;font-weight:600;color:var(--text2);text-align:right;flex-shrink:0">${label}</div>
+      <div style="flex:1;height:18px;background:var(--bg3);border-radius:3px;overflow:hidden;box-shadow:inset 0 1px 3px var(--inset-d,rgba(0,0,0,0.2))">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width 0.8s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:6px">
+        </div>
+      </div>
+      <div style="width:28px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--text1);flex-shrink:0">${bt[type]}</div>
+    </div>`;
+  }).join('');
+}
+function drawBar(bt){
+  const canvas=document.getElementById('barC');if(!canvas)return;
+  const wrap=canvas.parentElement;
+  canvas.width=wrap.clientWidth||360;canvas.height=wrap.clientHeight||160;
+  const ctx=canvas.getContext('2d');const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const types=Object.keys(bt).filter(k=>bt[k]>0);if(!types.length)return;
+  const max=Math.max(...types.map(k=>bt[k]));
+  const bw=Math.max(24,Math.floor((W-60)/types.length*0.6));
+  const gap=(W-60-bw*types.length)/(types.length+1);
+  types.forEach((type,i)=>{
+    const h=bt[type]/max*(H-35);
+    const x=30+gap*(i+1)+bw*i;const y=H-20-h;
+    const col=CC[type]||'#666';
+    const g=ctx.createLinearGradient(x,y,x,H-20);
+    g.addColorStop(0,col);g.addColorStop(1,col+'44');
+    ctx.fillStyle=g;
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(x,y,bw,h,3);else ctx.rect(x,y,bw,h);
+    ctx.fill();
+    ctx.fillStyle='rgba(240,237,230,0.75)';ctx.font=`${Math.floor(H*0.07)}px JetBrains Mono,monospace`;
+    ctx.textAlign='center';ctx.fillText(bt[type],x+bw/2,y-4);
+    ctx.fillStyle='rgba(110,101,88,0.8)';ctx.font=`${Math.floor(H*0.065)}px Source Sans 3,sans-serif`;
+    ctx.fillText((TC[type]?.l||type).slice(0,5),x+bw/2,H-5);
+  });
+}
+
+/* ──────────────────────────────────────────────
+   SIMULATE
+────────────────────────────────────────────── */
+const TESTS=[
+  {n:'Hans Müller',p:'4915112345678',t:'Ich habe seit gestern starke Zahnschmerzen, Schmerz 9 von 10, ich kann nicht schlafen.'},
+  {n:'Sabine Schneider',p:'4917623456789',t:'Ich möchte einen Termin für Zahnreinigung vereinbaren, bin bei TK versichert.'},
+  {n:'Thomas Bauer',p:'4917456789012',t:'Ich hatte heute einen Arbeitsunfall, bin gestürzt und habe starke Knieschmerzen.'},
+  {n:'Petra Fischer',p:'4916345678901',t:'Ich brauche eine Rezept-Verlängerung für Blutdruckmittel, bin PKV Allianz.'},
+];
+function fillTest(){const r=TESTS[Math.floor(Math.random()*TESTS.length)];document.getElementById('simName').value=r.n;document.getElementById('simPhone').value=r.p;document.getElementById('simTranscript').value=r.t}
+
+async function simulateCall(){
+  const name=document.getElementById('simName').value.trim();
+  const phone=document.getElementById('simPhone').value.trim();
+  const transcript=document.getElementById('simTranscript').value.trim();
+  const alertEl=document.getElementById('simAlert');alertEl.className='hidden';
+  if(!transcript){showAlert(alertEl,'warn','⚠ Bitte Gesprächsprotokoll eingeben.');return}
+  const btn=document.getElementById('simBtn');const sp=document.getElementById('simSpinner');
+  btn.disabled=true;sp.classList.remove('hidden');
+  document.getElementById('simResultBox').innerHTML='<div style="color:var(--text3);font-style:italic;padding:8px">Verarbeitung…</div>';
+  document.getElementById('simMeta').innerHTML='';
+  try{
+    const d=await api('simulate_call',{patient_name:name||'Unbekannt',phone:phone||'0000000000',transcript},65000);
+    renderSimResult(d);setTimeout(loadLogs,2000);
+  }catch(e){showAlert(alertEl,'error','✕ '+e.message);document.getElementById('simResultBox').innerHTML='<div style="color:var(--text3);font-style:italic;padding:8px">'+t('simWait')+'</div>'}
+  finally{btn.disabled=false;sp.classList.add('hidden')}
+}
+
+/* ── voice language state ── */
+let voiceLang = 'de';
+let voiceTexts = { de: '' };
+
+function setVoiceLang(lang) {
+  voiceLang = lang;
+  ['de','custom'].forEach(l => {
+    const btn = document.getElementById('vtab-'+l);
+    if (!btn) return;
+    if (l === lang) {
+      btn.style.background = 'var(--gold-dim)';
+      btn.style.color = 'var(--gold)';
+      btn.style.borderColor = 'var(--border2)';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--text3)';
+      btn.style.borderColor = 'var(--border)';
+    }
+  });
+  const labels = { de: 'Text (DE)', custom: 'Eigener Text' };
+  const btnLabels = { de: '🇩🇪 DE abspielen', custom: '▶ Abspielen' };
+  const badges = { de: 'DE', custom: '—' };
+  const placeholders = {
+    de: 'Guten Tag, wie kann ich Ihnen helfen?',
+    custom: 'Eigenen Text eingeben…'
+  };
+  document.getElementById('voiceTextLabel').textContent = labels[lang] || 'Text';
+  document.getElementById('voiceBtnLabel').textContent = btnLabels[lang] || '▶ Abspielen';
+  document.getElementById('voiceLangBadge').textContent = badges[lang] || '—';
+  const ta = document.getElementById('voiceText');
+  if (lang === 'de' && voiceTexts.de) ta.value = voiceTexts.de;
+  else if (lang === 'custom') { /* keep whatever is there */ }
+  else ta.placeholder = placeholders[lang] || '';
+}
+
+function renderSimResult(d) {
+  const r = d.result || d;
+
+  const de = r.voice_response_de
+           || r.voice_response
+           || r.vapi_response?.results?.[0]?.result
+           || r.results?.[0]?.result
+           || '';
+
+  const at      = (r.action_type || r.extracted_data?.action_type || 'other').toUpperCase();
+  const summary = r.summary      || r.extracted_data?.summary      || '';
+  const ins     = r.insurance    || r.insurance_type               || r.extracted_data?.insurance_type || '';
+  const isEmerg = r.is_emergency || r.extracted_data?.is_emergency || false;
+
+  voiceTexts.de = de;
+  document.getElementById('voiceText').value = de;
+  setVoiceLang('de');
+
+  let cards = '';
+
+  if (de) {
+    cards += `<div style="border-left:3px solid var(--gold);padding:10px 12px;background:var(--bg3);border-radius:0 4px 4px 0;margin-bottom:2px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+        <span style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--gold);font-family:'JetBrains Mono',monospace">🇩🇪 DEUTSCH</span>
+        ${badge(at)}
+        ${isEmerg?'<span style="background:#e74c3c;color:#fff;font-size:8px;font-weight:700;padding:1px 6px;border-radius:2px;letter-spacing:0.08em">NOTFALL</span>':''}
+      </div>
+      <div style="font-style:italic;font-size:13px;line-height:1.55;color:var(--text1)">&ldquo;${de}&rdquo;</div>
+      <button onclick="playLang('de')" style="margin-top:8px;padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:0.06em;border:1px solid var(--border2);background:var(--gold-dim);color:var(--gold);border-radius:3px;cursor:pointer">🔊 Abspielen</button>
+    </div>`;
+  }
+
+  if (!de) {
+    cards = `<pre style="font-size:10px;color:var(--text3);white-space:pre-wrap;padding:8px">${JSON.stringify(r,null,2)}</pre>`;
+  }
+
+  document.getElementById('simResultBox').innerHTML = cards;
+  document.getElementById('simMeta').innerHTML =
+    (summary ? `<span class="meta-chip">📋 ${summary}</span>` : '') +
+    (ins     ? `<span class="meta-chip">🪪 ${ins}</span>`     : '') +
+    (isEmerg ? `<span class="meta-chip" style="background:rgba(231,76,60,0.15);color:#e74c3c;border-color:rgba(231,76,60,0.3)">🚨 Notfall</span>` : '');
+}
+
+async function playLang(lang) {
+  setVoiceLang(lang);
+  await new Promise(r => setTimeout(r, 50));
+  previewVoice();
+}
+
+/* ──────────────────────────────────────────────
+   VOICE
+────────────────────────────────────────────── */
+async function previewVoice() {
+  const text = document.getElementById('voiceText').value.trim();
+  const alertEl = document.getElementById('voiceAlert'); alertEl.className = 'hidden';
+  if (!text) { showAlert(alertEl,'warn','⚠ Text eingeben.'); return; }
+  const btn = document.getElementById('voiceBtn');
+  const sp = document.getElementById('voiceSpinner');
+  const status = document.getElementById('audioStatus');
+  btn.disabled = true; sp.classList.remove('hidden');
+  if (status) status.textContent = 'Anfrage an ElevenLabs…';
+  try {
+    const d = await api('preview_voice', { text, voice_id: CFG.VOICE_ID }, 45000);
+    if (d.success && d.audio_base64 && d.audio_base64.length > 100) {
+      const a = document.getElementById('audioPlayer');
+      // load audio first, show player after canplay event
+      a.src = `data:${d.content_type || 'audio/mpeg'};base64,${d.audio_base64}`;
+      a.style.display = 'block';
+      a.load();
+      if (status) status.textContent = '🔊 Bereit — Drücken Sie ▶';
+      // try autoplay, if blocked — user presses play manually
+      a.play().then(() => {
+        if (status) status.textContent = '▶ Wiedergabe läuft…';
+      }).catch(() => {
+        if (status) status.textContent = '🔊 Bereit — Drücken Sie ▶';
+      });
+      a.onended = () => { if (status) status.textContent = '✓ Fertig'; };
+    } else if (d.audio_base64 && d.audio_base64.length <= 100) {
+      showAlert(alertEl, 'warn', 'ElevenLabs: Audio-Daten beschädigt (filesystem-v2 Bug). WF3 Code-Node aktualisieren.');
+      if (status) status.textContent = '';
+    } else {
+      showAlert(alertEl, 'warn', 'ElevenLabs: ' + (d.error || 'Kein Audio'));
+      if (status) status.textContent = '';
+    }
+  } catch(e) {
+    showAlert(alertEl, 'error', '✕ ' + e.message);
+    if (status) status.textContent = '';
+  } finally {
+    btn.disabled = false; sp.classList.add('hidden');
+  }
+}
+
+/* ──────────────────────────────────────────────
+   SETTINGS
+────────────────────────────────────────────── */
+function saveSettings(){
+  CFG.WEBHOOK=document.getElementById('sWebhook').value.trim();
+  CFG.VOICE_ID=document.getElementById('sVoiceId').value.trim();
+  CFG.DR_NAME=document.getElementById('sDrName').value.trim();
+  CFG.REFRESH_MS=(parseInt(document.getElementById('sRefresh').value)||60)*1000;
+  document.getElementById('welNameEl').textContent=' '+CFG.DR_NAME;
+  document.getElementById('drNameEl').textContent=CFG.DR_NAME;
+  clearInterval(refreshTimer);refreshTimer=setInterval(loadLogs,CFG.REFRESH_MS);
+  showAlert(document.getElementById('settAlert'),'success','✓ Gespeichert.');
+}
+
+/* ──────────────────────────────────────────────
+   TABS
+────────────────────────────────────────────── */
+function showTab(name,el){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    n.classList.remove('active');
+    const d=n.querySelector('.nav-dot');if(d)d.remove();
+  });
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  const dot=document.createElement('div');dot.className='nav-dot';el.appendChild(dot);
+  if(name==='patienten'&&!allPats.length)loadPatients();
+  if(name==='statistik')loadStats();
+  if(name==='anrufe')renderCalls(allLogs);
+  // Redraw charts after tab becomes visible
+  if(name==='statistik')setTimeout(()=>loadStats(),50);
+}
+
+/* ──────────────────────────────────────────────
+   UTILS
+────────────────────────────────────────────── */
+function showAlert(el,type,msg){if(!el)return;el.className=`alert alert-${type}`;el.textContent=msg}
+
+/* ──────────────────────────────────────────────
+   INIT
+────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded',()=>{
+  loadLogs();
+  refreshTimer=setInterval(loadLogs,CFG.REFRESH_MS);
+  window.addEventListener('resize',()=>{
+    drawSpark(allLogs);
+  });
+  // ── PWA: Register Service Worker ──
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('AI Clinic SW registered'))
+      .catch(e => console.log('SW error:', e));
+  }
+});
+</script>
+</body>
+</html>
