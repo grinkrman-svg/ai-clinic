@@ -1,0 +1,26 @@
+{
+  "name": "AI Clinic",
+  "short_name": "AI Clinic",
+  "description": "KI-Rezeption Dashboard — MVZ Praxis Berlin",
+  "start_url": "./AI_Clinic_v6.html",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#141210",
+  "theme_color": "#141210",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["medical", "productivity"],
+  "lang": "de"
+}
